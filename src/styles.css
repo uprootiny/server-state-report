@@ -1,0 +1,254 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&display=swap");
+
+:root {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #0a0806;
+}
+
+@keyframes agentPulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 0% 0%;
+  }
+
+  100% {
+    background-position: 400% 0%;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  background: #111;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3020;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 20% 10%, #1a1206 0%, #0a0806 60%, #060405 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.background-churn {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.045;
+}
+
+.background-row {
+  position: absolute;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  white-space: nowrap;
+  letter-spacing: 0.2em;
+  transition: top 0.1s linear;
+}
+
+.page {
+  position: relative;
+  z-index: 2;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+}
+
+.masthead {
+  margin-bottom: 36px;
+  border-bottom: 1px solid #2a2018;
+  padding-bottom: 24px;
+}
+
+.masthead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.eyebrow {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  color: #7a6a50;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.title {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: linear-gradient(90deg, #ff3b30, #ff9500, #ffd60a, #34c759, #30d5c8, #007aff, #af52de, #ff2d92);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.15;
+}
+
+.subtitle {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  color: #c7bba4;
+  font-style: italic;
+  margin-top: 8px;
+  max-width: 620px;
+  line-height: 1.45;
+}
+
+.meta-block {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: #5a4a30;
+  text-align: right;
+  line-height: 1.8;
+}
+
+.progress-bar {
+  margin-top: 20px;
+  height: 3px;
+  background: #1a1610;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  transition: width 0.5s ease;
+  background-size: 400% 100%;
+  animation: shimmer 4s linear infinite;
+}
+
+.accordion-button {
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+}
+
+.section-label {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.section-sublabel {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 12px;
+  font-style: italic;
+  letter-spacing: 0.04em;
+}
+
+.status-pill {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 9px;
+  padding: 2px 7px;
+  letter-spacing: 0.15em;
+}
+
+.micro {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+}
+
+.objective {
+  font-family: "Cormorant Garamond", serif;
+  font-size: 15px;
+  color: #d4c8b0cc;
+  line-height: 1.65;
+  margin: 0 0 16px;
+  padding-left: 12px;
+  font-style: italic;
+}
+
+.need-heading {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  margin-bottom: 7px;
+  opacity: 0.85;
+}
+
+.need-item {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px;
+  color: #c8bfa8cc;
+  line-height: 1.7;
+  padding-left: 16px;
+  position: relative;
+  margin-bottom: 2px;
+}
+
+.need-dot {
+  position: absolute;
+  left: 0;
+  font-size: 10px;
+}
+
+.footer {
+  margin-top: 28px;
+  border-top: 1px solid #1a1610;
+  padding-top: 16px;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 10px;
+  color: #3a3020;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 700px) {
+  .page {
+    padding: 24px 14px 42px;
+  }
+
+  .title {
+    font-size: 21px;
+  }
+
+  .subtitle {
+    font-size: 14px;
+  }
+
+  .meta-block {
+    width: 100%;
+    text-align: left;
+  }
+}
