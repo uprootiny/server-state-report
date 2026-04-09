@@ -570,6 +570,19 @@ function GroupList({ heading, items, color }) {
                       {item.confidence}
                     </span>
                   ) : null}
+                  {item.ok === false ? (
+                    <span
+                      style={{
+                        ...sx.mono8,
+                        color: tones.error,
+                        border: `1px solid ${tones.error}44`,
+                        padding: "1px 5px",
+                        background: `${tones.error}10`,
+                      }}
+                    >
+                      invalid
+                    </span>
+                  ) : null}
                 </div>
                 {item.detail ? <div style={{ ...sx.mono9, color: "#8A816F" }}>{item.detail}</div> : null}
                 {item.source ? (

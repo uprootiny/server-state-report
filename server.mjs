@@ -594,6 +594,18 @@ function runbook(title, commands) {
 }
 
 function normalizeItem(item, collectedAt) {
+  const allowedConfidence = new Set(["measured", "derived", "inferred", "unknown"]);
+  const normalizeCheckedAt = (value) => {
+    if (!value) {
+      return collectedAt;
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return collectedAt;
+    }
+    return date.toISOString();
+  };
+
   if (typeof item === "string") {
     return inferredItem(item, "unspecified", collectedAt);
   }
@@ -604,8 +616,8 @@ function normalizeItem(item, collectedAt) {
   return {
     text: item.text ?? "missing text",
     source: item.source ?? "unspecified",
-    checkedAt: item.checkedAt ?? collectedAt,
-    confidence: item.confidence ?? "inferred",
+    checkedAt: normalizeCheckedAt(item.checkedAt),
+    confidence: allowedConfidence.has(item.confidence) ? item.confidence : "inferred",
     ok: item.ok !== false,
     detail: item.detail ?? null,
   };
