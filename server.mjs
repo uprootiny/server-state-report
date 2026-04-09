@@ -591,6 +591,34 @@ function runbook(title, commands) {
   return { title, commands };
 }
 
+function normalizeItem(item, collectedAt) {
+  if (typeof item === "string") {
+    return inferredItem(item, "unspecified", collectedAt);
+  }
+  if (!item || typeof item !== "object") {
+    return unknownItem("invalid item", "unspecified", collectedAt);
+  }
+
+  return {
+    text: item.text ?? "missing text",
+    source: item.source ?? "unspecified",
+    checkedAt: item.checkedAt ?? collectedAt,
+    confidence: item.confidence ?? "inferred",
+    ok: item.ok !== false,
+    detail: item.detail ?? null,
+  };
+}
+
+function normalizeSections(sections, collectedAt) {
+  return sections.map((section) => ({
+    ...section,
+    groups: (section.groups || []).map((group) => ({
+      ...group,
+      items: (group.items || []).map((item) => normalizeItem(item, collectedAt)),
+    })),
+  }));
+}
+
 function makeItem(text, source, checkedAt, options = {}) {
   return {
     text,
@@ -1567,8 +1595,10 @@ async function collectSnapshot() {
     { id: "verdict", label: "X. OBSERVATION SURFACE", sublabel: "Freshness, validity, and priority", ...verdictSection },
   ];
 
+  const normalizedSections = normalizeSections(sections, collectedAt);
+
   const histories = {};
-  for (const section of sections) {
+  for (const section of normalizedSections) {
     histories[section.id] = addSectionHistory(section.id, section.attention);
   }
 
@@ -1588,7 +1618,7 @@ async function collectSnapshot() {
     siblings: siblings.data || [],
     entityStore,
     diagnostics,
-    sections,
+    sections: normalizedSections,
     histories,
   };
 }
