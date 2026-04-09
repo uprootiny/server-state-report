@@ -527,6 +527,13 @@ const Subrubric = memo(function Subrubric({ item, accent }) {
 });
 
 function GroupList({ heading, items, color }) {
+  const confidenceTone = {
+    measured: tones.ok,
+    derived: tones.warn,
+    inferred: "#8A816F",
+    unknown: tones.error,
+  };
+
   return (
     <div style={{ marginBottom: 12 }}>
       <div style={{ ...sx.mono9, color, marginBottom: 5, opacity: 0.8 }}>{heading}</div>
@@ -544,7 +551,35 @@ function GroupList({ heading, items, color }) {
             }}
           >
             <span style={{ position: "absolute", left: 0, color: `${color}66`, fontSize: 10 }}>·</span>
-            {item}
+            {typeof item === "string" ? (
+              item
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <span style={{ color: item.ok === false ? tones.error : "#C0B8A0CC" }}>{item.text}</span>
+                  {item.confidence ? (
+                    <span
+                      style={{
+                        ...sx.mono8,
+                        color: confidenceTone[item.confidence] || "#8A816F",
+                        border: `1px solid ${(confidenceTone[item.confidence] || "#8A816F")}44`,
+                        padding: "1px 5px",
+                        background: `${confidenceTone[item.confidence] || "#8A816F"}10`,
+                      }}
+                    >
+                      {item.confidence}
+                    </span>
+                  ) : null}
+                </div>
+                {item.detail ? <div style={{ ...sx.mono9, color: "#8A816F" }}>{item.detail}</div> : null}
+                {item.source ? (
+                  <div style={{ ...sx.mono8, color: "#7E6A4B", letterSpacing: "0.08em" }}>
+                    source: {item.source}
+                    {item.checkedAt ? ` · checked ${item.checkedAt}` : ""}
+                  </div>
+                ) : null}
+              </div>
+            )}
           </li>
         ))}
       </ul>
