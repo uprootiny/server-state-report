@@ -196,6 +196,7 @@ async function exists(filePath) {
 
 async function httpHeadProbe(port) {
   return new Promise((resolve) => {
+    const startedAt = Date.now();
     const request = http.request(
       {
         host: "127.0.0.1",
@@ -205,9 +206,10 @@ async function httpHeadProbe(port) {
         timeout: 2000,
       },
       (response) => {
+        const latencyMs = Date.now() - startedAt;
         const headline = `HTTP/${response.httpVersion} ${response.statusCode} ${response.statusMessage || ""}`.trim();
         response.resume();
-        resolve({ ok: true, headline });
+        resolve({ ok: true, headline, latencyMs });
       }
     );
 
@@ -215,7 +217,7 @@ async function httpHeadProbe(port) {
       request.destroy(new Error("timeout"));
     });
     request.on("error", (error) => {
-      resolve({ ok: false, headline: error.message });
+      resolve({ ok: false, headline: error.message, latencyMs: Date.now() - startedAt });
     });
     request.end();
   });
@@ -945,8 +947,9 @@ function summarizePorts(ports, collectedAt) {
           ? httpPorts
               .map((entry) => {
                 const headline = entry.http?.headline ? `, ${entry.http.headline}` : "";
+                const detail = entry.http ? `${entry.http.headline}${Number.isFinite(entry.http.latencyMs) ? ` · ${entry.http.latencyMs}ms` : ""}` : null;
                 const text = `${entry.port} -> ${entry.process || "unknown"}${entry.cwd ? ` @ ${entry.cwd}` : ""}${headline}`;
-                return measuredItem(text, "ss -ltnpH", collectedAt, entry.http?.headline || null);
+                return measuredItem(text, "ss -ltnpH", collectedAt, detail);
               })
               .slice(0, 10)
           : [measuredItem("No HTTP listeners observed", "ss -ltnpH", collectedAt)],
@@ -955,7 +958,11 @@ function summarizePorts(ports, collectedAt) {
         heading: "B. Probe health",
         items: failedProbes.length
           ? failedProbes.map((entry) =>
-              makeItem(`${entry.port} probe failed`, "httpHeadProbe()", collectedAt, { ok: false, confidence: "measured", detail: entry.http?.headline || null })
+              makeItem(`${entry.port} probe failed`, "httpHeadProbe()", collectedAt, {
+                ok: false,
+                confidence: "measured",
+                detail: entry.http ? `${entry.http.headline}${Number.isFinite(entry.http.latencyMs) ? ` · ${entry.http.latencyMs}ms` : ""}` : null,
+              })
             )
           : [measuredItem("All probed HTTP listeners responded on loopback", "httpHeadProbe()", collectedAt)],
       },
