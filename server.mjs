@@ -1180,6 +1180,7 @@ async function collectSnapshot() {
       ...ingress.data,
       publicUrl: deployment.publicUrl,
     },
+    repoSampledAt: repos.sampledAt || null,
     deployment,
     services: services.data,
     tmux: tmux.data,
@@ -1262,6 +1263,8 @@ async function updateSnapshot() {
       meta: {
         collectorStartedAt: state.collector.startedAt,
         staleAfterMs: STALE_AFTER_MS,
+        repoSampledAt: snapshot.repoSampledAt,
+        repoCacheAgeMs: snapshot.repoSampledAt ? Date.now() - snapshot.repoSampledAt : null,
       },
     };
     const validation = validateSnapshot(state.snapshot);
@@ -1355,6 +1358,20 @@ const server = http.createServer(async (request, response) => {
   if (request.url.startsWith("/api/") && isRateLimited(ip)) {
     response.writeHead(429, securityHeaders("text/plain; charset=utf-8"));
     response.end("rate limited");
+    return;
+  }
+
+  if (request.url.startsWith("/api/health")) {
+    const status = collectorStatusSummary();
+    const ok = status.healthy && status.ready;
+    json(response, ok ? 200 : 503, {
+      ok,
+      collectedAt: status.lastSuccessfulSnapshotAt,
+      stalenessMs: status.stalenessMs,
+      consecutiveFailures: status.consecutiveFailures,
+      lastDurationMs: status.lastDurationMs,
+      errors: summarizeErrors(),
+    });
     return;
   }
 
