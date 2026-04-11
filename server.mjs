@@ -92,6 +92,12 @@ function toIsoNow() {
   return new Date().toISOString();
 }
 
+async function timed(label, fn) {
+  const startedAt = Date.now();
+  const result = await fn();
+  return { label, result, durationMs: Date.now() - startedAt };
+}
+
 function securityHeaders(contentType) {
   return {
     "Content-Type": contentType,
@@ -1030,17 +1036,29 @@ function deriveEntityStore(snapshot) {
 
 async function collectSnapshot() {
   const collectedAt = toIsoNow();
-  const [disk, memory, topProcesses, ports, ingress, services, tmux, repos, siblings] = await Promise.all([
-    collectDisk(),
-    collectMemory(),
-    collectTopProcesses(),
-    collectPorts(),
-    collectIngress(),
-    collectServices(),
-    collectTmux(),
-    collectRepos(),
-    collectSiblingIntegrations(collectedAt),
+  const timedResults = await Promise.all([
+    timed("disk", collectDisk),
+    timed("memory", collectMemory),
+    timed("processes", collectTopProcesses),
+    timed("ports", collectPorts),
+    timed("ingress", collectIngress),
+    timed("services", collectServices),
+    timed("tmux", collectTmux),
+    timed("repos", collectRepos),
+    timed("siblings", () => collectSiblingIntegrations(collectedAt)),
   ]);
+
+  const byLabel = Object.fromEntries(timedResults.map((entry) => [entry.label, entry]));
+  const probeDurationsMs = Object.fromEntries(timedResults.map((entry) => [entry.label, entry.durationMs]));
+  const disk = byLabel.disk.result;
+  const memory = byLabel.memory.result;
+  const topProcesses = byLabel.processes.result;
+  const ports = byLabel.ports.result;
+  const ingress = byLabel.ingress.result;
+  const services = byLabel.services.result;
+  const tmux = byLabel.tmux.result;
+  const repos = byLabel.repos.result;
+  const siblings = byLabel.siblings.result;
 
   const host = {
     hostname: os.hostname(),
@@ -1076,6 +1094,7 @@ async function collectSnapshot() {
     repos: repos.diag,
     siblings: siblings.diag,
   };
+  const probeErrors = Object.fromEntries(Object.entries(diagnostics).map(([key, diag]) => [key, !diag.ok]));
 
   const summarizeCtx = {
     clamp,
@@ -1181,6 +1200,8 @@ async function collectSnapshot() {
       publicUrl: deployment.publicUrl,
     },
     repoSampledAt: repos.sampledAt || null,
+    probeDurationsMs,
+    probeErrors,
     deployment,
     services: services.data,
     tmux: tmux.data,
@@ -1260,11 +1281,13 @@ async function updateSnapshot() {
       events: deriveEvents(snapshot),
       stalenessMs: 0,
       revision: ++state.revision,
-      meta: {
-        collectorStartedAt: state.collector.startedAt,
-        staleAfterMs: STALE_AFTER_MS,
+    meta: {
+      collectorStartedAt: state.collector.startedAt,
+      staleAfterMs: STALE_AFTER_MS,
         repoSampledAt: snapshot.repoSampledAt,
         repoCacheAgeMs: snapshot.repoSampledAt ? Date.now() - snapshot.repoSampledAt : null,
+        probeDurationsMs: snapshot.probeDurationsMs,
+        probeErrors: snapshot.probeErrors,
       },
     };
     const validation = validateSnapshot(state.snapshot);
